@@ -20,4 +20,12 @@ app.use( express.static("public"))
 
 app.use(cookieParser())
 
+// import routes 
+
+import router from "./routes/user.routes.js"
+
+// route declaration toh ab route ko lana padega toh we the middleware 
+app.use("/users",router)
+
+
 export {app};

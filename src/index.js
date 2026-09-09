@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import { DB_NAME } from "./constants.js";
 import express from "express";
 import "dotenv/config";
+import { app } from "./app.js";
 
-const app = express();
 
 (async () => {
     try {
