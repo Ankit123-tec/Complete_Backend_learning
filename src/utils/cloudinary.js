@@ -1,5 +1,5 @@
-import {v2 as cloudinary } from "cloudinary"
-
+import { v2 as cloudinary } from "cloudinary"
+import "dotenv/config"
 import fs from "fs"
 
 
@@ -15,7 +15,7 @@ const uploadOnCloudinary = async (localFilePath)=>{
         if(!localFilePath) return null;
 
         // upload the file on cloudinary
-        const response = await cloudinary.v2.uploader.upload(localFilePath,{
+        const response = await cloudinary.uploader.upload(localFilePath,{
             resource_type : "auto"
         })
         console.log(response.url);
@@ -23,7 +23,8 @@ const uploadOnCloudinary = async (localFilePath)=>{
         return response
     }
     catch(error){
-        fs.unlinkSync(localFilePath) // rmove the locally saved current file if the work is not correct ; 
+        console.error("Cloudinary upload failed:", error)
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath)
         return null;
     }
 }
