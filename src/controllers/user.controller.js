@@ -3,17 +3,18 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import ApiResponse from "../utils/ApiResponse.js";
-import { use } from "react";
+import jwt from "jsonwebtoken"
+import { access } from "fs";
 
 
 
 const generateAndRefreshTokens = async (userId)=>{
     try {
-        const user = findById(userId)
-        const accesstoken = User.generateAccessToken()
-        const refreshtoken = User.generaterefreshToken()
+        const user = await User.findById(userId)
+        const accesstoken = user.generateAccessToken()
+        const refreshtoken = user.generaterefreshToken()
 
-        user.refreshtoken = refreshtoken;   
+        user.refreshToken = refreshtoken;
         await user.save({validateBeforeSave : false})
 
         return {accesstoken,refreshtoken};
@@ -22,7 +23,7 @@ const generateAndRefreshTokens = async (userId)=>{
     }
 }
 
-
+// register the user 
 const userregister = asyncHandler(async (req, res) => {
     const { fullName, email, userName, password } = req.body;
 
@@ -85,7 +86,7 @@ const userregister = asyncHandler(async (req, res) => {
 });
 
 
-
+// for login user into the data base 
 const userLogin = asyncHandler(async (req,res) =>{
     // take the data
     // user email or username 
@@ -97,7 +98,7 @@ const userLogin = asyncHandler(async (req,res) =>{
 
     const {userName , email , password} = req.body
 
-    if(!userName || !email){
+    if(!userName && !email){
         throw new ApiError(404,"The email or username is mandoratory");
     }
 
@@ -130,8 +131,8 @@ const userLogin = asyncHandler(async (req,res) =>{
 
     return res
     .status(200)
-    .cookie("accesstoken",accesstoken,options)
-    .cookie("refreshtoken",refreshtoken,options)
+    .cookie("accessToken",accesstoken,options)
+    .cookie("refreshToken",refreshtoken,options)
     .json(
         new ApiResponse(
             200,
@@ -143,6 +144,10 @@ const userLogin = asyncHandler(async (req,res) =>{
     )
 
 })
+
+
+
+// For Logout Request Handle Karega 
 
 const logoutUser = asyncHandler(async(req, res) => {
     await User.findByIdAndUpdate(
@@ -169,8 +174,51 @@ const logoutUser = asyncHandler(async(req, res) => {
     .json(new ApiResponse(200, {}, "User logged Out"))
 })
 
-export default {
-    userregister,
-    userLogin,
-    logoutUser
-};
+
+// For refresh the Accessandrefresh token 
+const refreshAccessToken = asyncHandler(async(req,res)=>{
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+    
+    if(!incomingRefreshToken){
+        throw new ApiError("401","we are not able to fetch the Access and refresh token ")
+    }
+
+    try {
+        const decodedToekn = jwt.verify(incomingRefreshToken , process.env.REFERESH_TOKEN_SECRET)
+    
+    
+        const user = await User.findById(decodedToekn?._id)
+    
+        if(!user){
+            throw new ApiError("400","Invalid refresh Token")
+        }
+    
+        if(incomingRefreshToken !== user?.refreshToken){
+            throw new ApiError("400","rfresh token is expired or used")
+        }
+        
+        const {accesstoken , newrefreshtoken} = await generateAndRefreshTokens(user._id)
+        
+        const options = {
+            httpOnly : true,
+            secure : true
+        }
+    
+        return res
+        .status(200)
+        .cookie("accesstoken" , accesstoken , options)
+        .cookie("refreshtoken" , newrefreshtoken , options)
+        .json(
+            new ApiResponse(
+                200,
+                {accesstoken , refreshToken : newrefreshtoken},
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError("502" , "while decoding the error is coming nahi ho pa raha ye decoded ");
+    }
+    
+})
+
+export { userregister, userLogin, logoutUser ,refreshAccessToken};
