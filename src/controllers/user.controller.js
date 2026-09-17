@@ -218,7 +218,42 @@ const refreshAccessToken = asyncHandler(async(req,res)=>{
     } catch (error) {
         throw new ApiError("502" , "while decoding the error is coming nahi ho pa raha ye decoded ");
     }
-    
 })
+
+
+// for changing the password
+
+const changePassword = asncHandler(async(req,res) =>{
+    const {oldPassword , newPassword} = req.body();
+
+    const user = User.findById(req.user?._id);
+
+    const checkThePassword = await user.isPasswordCorrect(oldPassword)
+
+    if(!checkThePassword){
+        throw new ApiError("404","the Old password are not match ")
+    }
+
+    user.password  = newPassword ; 
+
+    await user.save({validateBeforeSave : false})
+
+    return res 
+    .status(200)
+    .json(new ApiResponse(200,{},"The password update successfully !!!!! "));
+
+})
+
+// get The currentuser 
+
+const getCurrentUser =asncHandler(async(req,res) =>{
+    return res.status(200,req.user,
+        "user current fetched the data successfully "
+    )
+})
+
+// complete update the details 
+
+
 
 export { userregister, userLogin, logoutUser ,refreshAccessToken};
