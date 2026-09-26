@@ -2,6 +2,7 @@ import { Router } from "express";
 import { upload } from "../middlewares/multer.middleware.js";
 import {logoutUser,userLogin,userregister,refreshAccessToken} from "../controllers/user.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import multer from "multer";
 
 const router = Router();
 
@@ -26,6 +27,22 @@ router.post("/logout",verifyJWT,logoutUser)
 
 // refresh the Access and refresh token 
 router.post("/refreshAccessToken", refreshAccessToken);
+
+router.post("/change-password",verifyJWT, changePassword);
+
+router.get("/get-current-user-data" ,verifyJWT, getCurrentUser);
+
+router.patch("/update_details",verifyJWT,updateTheDeatils);
+
+
+router.patch("/avtar-update",verifyJWT,upload.single , updateUserAvtar);
+
+
+router.patch("/coverImage-update",verifyJWT,upload.single ,updateUserCoverImage);
+
+router.post("/c/:userName" , verifyJWT ,getUserChannelProfile )
+
+router.get("/watch-History",getWatchHistory);
 
 
 export default router;
