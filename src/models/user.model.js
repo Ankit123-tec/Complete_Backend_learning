@@ -77,14 +77,18 @@ userSchema.methods.generateAccessToken = function (){
     )
 }
 userSchema.methods.generaterefreshToken = function (){
+    const refreshSecret = process.env.REFRESH_TOKEN_SECRET || process.env.REFERESH_TOKEN_SECRET;
+    const refreshExpiry = process.env.REFRESH_TOKEN_EXPIRY || process.env.REFERESH_TOKEN_EXPIRY;
+
     return jwt.sign(
         {
             _id : this._id,
-            
         },
-        process.env.REFERESH_TOKEN_SECRET,
+        refreshSecret,
+        // process.env.REFRESH_TOKEN_SECRET
         {
-            expiresIn : process.env.REFERESH_TOKEN_EXPIRY
+            expiresIn : refreshExpiry
+            // expiryIn : process.env.REFRESH_TOKEN_EXPIRY 
         }
     )
 }
