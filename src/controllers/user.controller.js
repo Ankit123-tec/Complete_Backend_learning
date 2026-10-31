@@ -163,7 +163,7 @@ const logoutUser = asyncHandler(async(req, res) => {
             new: true
         }
     )
-
+    
     return res
     .status(200)
     .clearCookie("accessToken", cookieOptions)
@@ -181,7 +181,7 @@ const refreshAccessToken = async (userId) => {
             await User.findById(userId);
 
 
-        const accessToken =
+        const accessTosken =
             user.generateAccessToken();
 
 
@@ -253,7 +253,7 @@ const updateTheDeatils = asyncHandler(async(req,res)=>{
     if(!fullName || !email){
         throw new ApiError(400, "All fields are mandotary");
     }
-
+    
     const user = await User.findByIdAndUpdate(req.user?._id,
         {
             $set:{
